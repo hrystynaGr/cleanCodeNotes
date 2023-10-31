@@ -1,6 +1,8 @@
 ## Chapter 3: Functions
 
-The first part of the chapter discusses function names, function arguments, and rules regarding the length of functions and their level of abstraction. Let's explore these concepts with some JavaScript examples.
+In the opening part of the chapter, the author introduces us to function names, function arguments, and guidelines concerning how long functions should be and their level of abstraction. Let's delve into these ideas with a few JavaScript examples.
+
+In the latter part of the chapter, the author acquaints us with error handling, try/catch blocks, and the DRY (Don't Repeat Yourself) principle. Furthermore, the author sheds light on the idea that functions should not both modify and compare things, but rather either modify or compare them. Additionally, the "no side effect" principle is highlighted.
 
 **Function Length**
 Back when FORTRAN was very popular, it was recommended that functions should be "no longer than the screen height." However, it's important to note that, at that time, the available screen space could only accommodate about 24 lines of code. This rule made sense then, but in today's context, where we can fit over 150 lines on one screen, we should not adhere to the "rule of a screen" anymore. The author summarizes it as "the smaller, the better." Functions should be as concise as possible without sacrificing clarity.
@@ -96,3 +98,83 @@ To cook the cake I should put cream between the dought.
             Mix eggs, flour, melted butter.
             Mix whipped cream, sugar.
 ```
+
+**Your function should have no side effects**
+It means, that it should do strictly what it says it does. For example the following function clains that it adds an item to the shopping list.
+```
+function addToShoppingList(item) {
+  shoppingList.push(item);
+  shoppingList.sort((a,b) => a-b);
+  return shoppingList;
+}
+```
+But it also sorts the list, which may not alway wanted why you use function that clains that it only adds.
+
+**Command Query Separation**
+Functions should either do something or answer something, but not both. Either your function should change the state of an object, or it should return some information about that object. Doing both often leads to confusion. Consider, for example, the following function:
+```
+function setName(person, name) {
+  if(typeof person === object && !person.hasOwnProperty(name)){
+    setName(person, 'Bob')
+    return true;
+  }
+  else {
+    return false ;
+  }
+}
+```
+And imagine this function returns `true` if setting was sucessfull and `false` if it was not. This is how the usage of the functing will look like:
+```
+if(setName(person, 'Bob'))
+```
+Does it look clear? Not for me. What is the condition? If name already exist in person, or f we are allowed to chnage it or what?
+It is much better to write it like that:
+```
+function setName(person, name) {
+    setName(person, 'Bob')
+}
+
+if(typeof person === object && !person.hasOwnProperty(name)){
+  setName(person, 'Bob')
+}
+```
+
+**Extract Try/Catch Blocks (personally, do not agree with this)** 
+Author suggests that insted of this function:
+```
+function deletePageAndAllReferences(page) {
+  try {
+    deletePage(page);
+    registry.deleteReference(page.name);
+    configKeys.deleteKey(page.name.makeKey());
+  } catch (e) {
+    logError(e);
+  }
+}
+```
+we should create two functions, one of which handles `try/catch` login, and second contains the logic from `try`.
+```
+function deletePageAndAllReferences(page) {
+  deletePage(page);
+  registry.deleteReference(page.name);
+  configKeys.deleteKey(page.name.makeKey());
+}
+
+function delete() {
+  try {
+    deletePageAndAllReferences(page)
+  } 
+  catch (e) {
+    logError(e);
+  }
+}
+```
+
+**Why I do not fully like this idea?**
+Let's envision a scenario where we need to remove 20 distinct instances. In this case, what should we name these 20 different `delete` functions? You will need to provide 20 unique names for functions that carry out the actual deletion, as well as 20 names for functions responsible for handling the deletion logic. Does't sound fun right.
+However we can suppose that author was suggesting more concise approach - creating a single `delete` function and passing another function as an argument (callback), specifying what should be deleted. However, is dealing with functions as arguments and the concept of callback functions any more convenient to write and read compared to adding just two more lines in a catch block? In my opinion, not necessarily.
+
+
+**Don’t Repeat Yourself (DRY)**
+
+Duplication may be the root of all evil in software. Many principles and practices have been created for the purpose of controlling or eliminating it. Just do not do it. If you need to duplicate the code it means that you need to ceate another structure to omit it. Use function/mathod/class/component what is better suited in your case to omit duplication.
